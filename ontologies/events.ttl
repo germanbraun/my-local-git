@@ -11,6 +11,10 @@
   <http://www.linkedmodel.org/1.2/schema/vaem#namespace> <http://ontologies.metaphacts.com/eventsontology/>;
   rdfs:label "eventsOntology" .
 
+<http://ontologies.metaphacts.com/eventsontology/Drink> a owl:Class;
+  rdfs:isDefinedBy :eventsontology;
+  rdfs:label "Drink" .
+
 <http://ontologies.metaphacts.com/eventsontology/Event> a owl:Class;
   rdfs:isDefinedBy :eventsontology;
   rdfs:label "Event" .
