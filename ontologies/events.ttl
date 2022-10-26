@@ -6,6 +6,10 @@
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
+[] a sh:NodeShape;
+  sh:property <http://ontologies.metaphacts.com/eventsontology/f64a42cf-21c4-415d-b04f-12df83f2dace>;
+  sh:targetClass <http://ontologies.metaphacts.com/eventsontology/Event> .
+
 :eventsontology a owl:Ontology;
   dcterms:title "eventsOntology";
   <http://www.linkedmodel.org/1.2/schema/vaem#namespace> <http://ontologies.metaphacts.com/eventsontology/>;
@@ -18,3 +22,12 @@
 <http://ontologies.metaphacts.com/eventsontology/Event> a owl:Class;
   rdfs:isDefinedBy :eventsontology;
   rdfs:label "Event" .
+
+<http://ontologies.metaphacts.com/eventsontology/f64a42cf-21c4-415d-b04f-12df83f2dace>
+  a sh:PropertyShape;
+  sh:class <http://ontologies.metaphacts.com/eventsontology/Drink>;
+  sh:path <http://ontologies.metaphacts.com/eventsontology/offersDrink> .
+
+<http://ontologies.metaphacts.com/eventsontology/offersDrink> a owl:ObjectProperty;
+  rdfs:isDefinedBy :eventsontology;
+  rdfs:label "offersDrink" .
