@@ -23,11 +23,6 @@
   rdfs:isDefinedBy :eventsontology;
   rdfs:label "Event" .
 
-<http://ontologies.metaphacts.com/eventsontology/SocialEvent> a owl:Class;
-  rdfs:isDefinedBy :eventsontology;
-  rdfs:label "SocialEvent";
-  rdfs:subClassOf <http://ontologies.metaphacts.com/eventsontology/Event> .
-
 <http://ontologies.metaphacts.com/eventsontology/f64a42cf-21c4-415d-b04f-12df83f2dace>
   a sh:PropertyShape;
   sh:class <http://ontologies.metaphacts.com/eventsontology/Drink>;
