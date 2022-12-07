@@ -25,8 +25,7 @@
 
 <http://ontologies.metaphacts.com/eventsontology/Test> a owl:Class;
   rdfs:isDefinedBy :eventsontology;
-  rdfs:label "test";
-  rdfs:subClassOf <http://ontologies.metaphacts.com/eventsontology/Event> .
+  rdfs:label "test" .
 
 <http://ontologies.metaphacts.com/eventsontology/f64a42cf-21c4-415d-b04f-12df83f2dace>
   a sh:PropertyShape;
