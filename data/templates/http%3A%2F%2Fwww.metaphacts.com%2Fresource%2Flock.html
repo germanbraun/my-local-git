@@ -1,0 +1,51 @@
+
+<div class='page'>
+  <div class='page__body'>
+    {{> ::main asset='http://ontologies.metaphacts.com/emptyont'}}
+  </div>
+</div>
+
+<template-fragment id="forceAcquireLockTrigger">
+  <mp-event-trigger targets='["lock-scope"]' type='AssetLockScope.Acquire' data='{"force": true}'>
+    <button class='btn btn-danger btn-sm'>Force edit mode</button>
+  </mp-event-trigger>
+</template-fragment>
+
+<template-fragment id='main'>
+  <p>The asset <mp-label iri='{{asset}}'></mp-label> is being edited here.</p>
+
+  <mp-event-target-template-render id='lock-tpl' template='{{> t}}'>
+    <template id='t'>
+      <bs-alert variant='info'>
+        current edit ({{other.otherLocks.length}})
+        {{log other.otherLocks}}
+        <ul>
+          {{#each other.otherLocks}}
+          <li>{{token}}</li>
+          {{/each}}
+        </ul>
+      </bs-alert>
+    </template>
+  </mp-event-target-template-render>
+
+  <mp-asset-lock-scope id='lock-scope' resource='{{asset}}' lock-on-mount='true'></mp-asset-lock-scope>
+
+  <mp-event-combine listen-events='[
+    {"property": "scope", "source": "lock-scope", "type": "AssetLockScope.ScopeLock"},
+    {"property": "other", "source": "lock-scope", "type": "AssetLockScope.OtherLocks"}
+  ]' default-targets='["lock-tpl", "lock-results"]'></mp-event-combine>
+
+  <mp-event-target-template-render id='lock-results' template='{{>t}}'>
+    <template id='t'>
+      {{#if (cond-eq scope.state "acquired")}}
+        <p>Lock is acquired.. showing form here</p>
+        <semantic-form fields='[{"id": "label", "xsdDatatype": "xsd:string"}]'></semantic-form>
+      {{/if}}
+      {{#if (cond-eq scope.state "failedToAcquire")}}
+        <p>Could not lock asset..</p>
+        {{> ::forceAcquireLockTrigger}}
+        <p>Showing in read-only mode?</p>
+      {{/if}}
+    </template>
+  </mp-event-target-template-render>
+</template-fragment>
