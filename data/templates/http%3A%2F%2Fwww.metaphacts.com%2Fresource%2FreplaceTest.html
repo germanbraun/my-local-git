@@ -1,0 +1,876 @@
+
+<style>
+  .ontodia-accordion-item__header {
+    padding-left: 20px;
+    position: relative;
+    flex-shrink: 0;
+    font-size: 16px;
+    color: #ffff;
+    background: rgb(0, 123, 255) !important;
+    cursor: default;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+</style>
+
+
+<template-fragment id='template-kp'>
+  <div>
+    <mp-knowledge-panel-trigger
+      iri='{{iri}}'
+      target='knowledge-panel-1'
+    >
+    </mp-knowledge-panel-trigger>
+  </div>
+</template-fragment>
+
+
+<template-fragment id="source">
+  <mp-overlay-dialog
+    title='Global IRI Replacement'
+    bs-size="large"
+  >
+    <mp-overlay-dialog-trigger>
+      <button
+        class="btn btn-primary"
+        style='float:right'
+      > Run Replacement </button>
+    </mp-overlay-dialog-trigger>
+    <mp-overlay-dialog-content>
+      {{#if (cond-and (cond-gte selection1.selection.length 1) (cond-eq selection2.selection.length 1))}}
+      <div>
+        <b> IRIs to be replaced: </b>
+        {{#each selection1.selection}}
+        <li> {{this}} </li>
+        {{/each}}
+      </div>
+      <br />
+      <div>
+        <b> New IRI: </b>
+        <li> {{selection2.selection}}</li>
+      </div>
+      <bs-alert
+        variant="warning"
+        class="alert-icon"
+      >Be careful, you are updating the databases. This operation may take a while</bs-alert>
+
+      <semantic-update
+        query='
+            DELETE {
+              GRAPH ?g {
+                ?subject ?predicate ?object .
+              }
+            } 
+            INSERT {
+              GRAPH ?g {
+                ?newsubject ?newpredicate ?newobject .
+              }   
+            }  WHERE {
+                GRAPH ?g {
+                    VALUES (?selectedIRI){
+                      {{#each selection1.selection}}
+                        ("{{this}}")
+                      {{/each}}
+                    }
+                    ?subject ?predicate ?object .
+                    BIND("{{selection2.selection}}" as ?newIRI)
+    					      BIND(IF(STR(?subject) = ?selectedIRI, IRI(?newIRI), ?subject) AS ?newsubject)
+    					      BIND(IF(STR(?predicate) = ?selectedIRI, IRI(?newIRI), ?predicate) AS ?newpredicate)
+    					      BIND(IF(isIRI(?object) && STR(?object) = ?selectedIRI, IRI(?newIRI), ?object) AS ?newobject)
+  						      FILTER (NOT EXISTS {?newsubject ?newpredicate ?newobject .})                    
+                } 
+            }'
+        variable-params='["g", "newsubject", "newpredicate", "newobject", "subject", "predicate", "object", "selectedIRI", "newIRI"]'
+        post-action='reload'
+        show-confirmation="true"
+      >
+        <div> <br />
+          <button class='btn btn-primary'> Proceed? </button>
+        </div>
+      </semantic-update>
+      {{else}}
+      {{#if (cond-and input (cond-gte selection1.selection.length 1))}}
+
+      <semantic-query
+        id='input-val'
+        query='
+                    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                    SELECT ?value
+                    WHERE {
+                      <{{input.iri}}> rdfs:label ?value .
+                    } LIMIT 1
+                  '
+        template='{{> see}}'
+      >
+
+        <template id='see'>
+          <div>
+            <b> IRIs to be replaced: </b>
+            {{#each selection1.selection}}
+            <li> {{this}} </li>
+            {{/each}}
+          </div>
+          <br />
+          <div>
+            <b> New IRI: </b>
+            {{#each bindings}}
+            <li> {{string-of this.value}} </li>
+            {{/each}}
+          </div>
+          <bs-alert
+            variant="warning"
+            class="alert-icon"
+          >Be careful, you are updating the databases. This operation may take a while</bs-alert>
+
+          <semantic-update
+            query='
+                    DELETE {
+                      GRAPH ?g {
+                        ?subject ?predicate ?object .
+                      }
+                    } 
+                    INSERT {
+                      GRAPH ?g {
+                        ?newsubject ?newpredicate ?newobject .
+                      }   
+                    }  WHERE {
+                        GRAPH ?g {
+                          VALUES (?selectedIRI){
+                            {{#each selection1.selection}}
+                              ("{{this}}")
+                            {{/each}}
+                          }
+                          ?subject ?predicate ?object .
+
+                          VALUES (?newIRI){
+                            {{#each bindings}}
+                              ({{this.value}})
+                            {{/each}}
+                          }
+
+                          BIND(IF(STR(?subject) = ?selectedIRI, ?newIRI, ?subject) AS ?newsubject)
+    					            BIND(IF(STR(?predicate) = ?selectedIRI, ?newIRI, ?predicate) AS ?newpredicate)
+    					            BIND(IF(isIRI(?object) && STR(?object) = ?selectedIRI, ?newIRI, ?object) AS ?newobject)
+  						            FILTER (NOT EXISTS {?newsubject ?newpredicate ?newobject .})   
+                      } 
+                    }'
+            variable-params='["g", "newsubject", "newpredicate", "newobject", "subject", "predicate", "object", "selectedIRI", "newIRI"]'
+            post-action='reload'
+            show-confirmation="true"
+          >
+            <div> <br />
+              <button class='btn btn-primary'> Proceed? </button>
+            </div>
+          </semantic-update>
+        </template>
+      </semantic-query>
+      {{else}}
+      {{#if (cond-and input-partial (cond-gte selection1.selection.length 1))}}
+      <semantic-query
+        id='input-val-p'
+        query='
+                    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                    SELECT ?value_old ?value_new
+                    WHERE {
+                      <{{input-partial.iri}}> :string_old ?value_old .
+                      <{{input-partial.iri}}> :string_new ?value_new .
+                    } LIMIT 1
+                  '
+        template='{{> see}}'
+      >
+        <template id='see'>
+          <div>
+            <b> IRIs to be replaced: </b>
+            {{#each selection1.selection}}
+            <li> {{this}} </li>
+            {{/each}}
+          </div>
+          <br />
+          <div>
+            <b> String to be replaced: </b>
+            {{log bindings}}
+            {{#each bindings}}
+            <li> previous string: {{this.value_old.value}} </li>
+            <li> new string: {{this.value_new.value}} </li>
+            {{/each}}
+          </div>
+          <bs-alert
+            variant="warning"
+            class="alert-icon"
+          >Be careful, you are updating the databases. This operation may take a while</bs-alert>
+
+          <semantic-update
+            query='
+                    DELETE {
+                      GRAPH ?g {
+                        ?subject ?predicate ?object .
+                      }
+                    } 
+                    INSERT {
+                      GRAPH ?g {
+                        ?newsubject ?newpredicate ?newobject .
+                      }   
+                    }  WHERE {
+                        GRAPH ?g {
+                          ?subject ?predicate ?object .
+                          
+                          VALUES (?selectedIRI){
+                            {{#each selection1.selection}}
+                              ("{{this}}")
+                            {{/each}}
+                          }
+
+                          VALUES (?string_old ?string_new){
+                            {{#each bindings}}
+                              ("{{this.value_old.value}}" "{{this.value_new.value}}")
+                            {{/each}}
+                          }
+                          BIND(IF(STR(?subject) = ?selectedIRI, IRI(REPLACE (STR(?subject), ?string_old, ?string_new)), ?subject) AS ?newsubject)
+    					            BIND(IF(STR(?predicate) = ?selectedIRI, IRI(REPLACE (STR(?predicate), ?string_old, ?string_new)), ?predicate) AS ?newpredicate)
+    					            BIND(IF(isIRI(?object) && STR(?object) = ?selectedIRI, IRI(REPLACE (STR(?object), ?string_old, ?string_new)), ?object) AS ?newobject)
+  						            FILTER (NOT EXISTS {?newsubject ?newpredicate ?newobject .})
+                      } 
+                    }'
+            variable-params='["g", "newsubject", "newpredicate", "newobject", "subject", "predicate", "object", "selectedIRI", "string_new", "string_old"]'
+            post-action='reload'
+            show-confirmation="true"
+          >
+            <div> <br />
+              <button class='btn btn-primary'> Proceed? </button>
+            </div>
+          </semantic-update>
+        </template>
+      </semantic-query>
+      {{else}}
+      <bs-alert
+        variant="danger"
+        class="alert-icon"
+      >
+        <li>
+          At least one IRI must be selected to be replaced
+        </li>
+        <li>
+          One new IRI or strings must be given
+        </li>
+      </bs-alert>
+      {{/if}}
+      {{/if}}
+      {{/if}}
+    </mp-overlay-dialog-content>
+  </mp-overlay-dialog>
+</template-fragment>
+
+
+<template-fragment id='tpl-full-existing'>
+  <mp-event-combine
+    listen-events='[
+          {"property": "selection1", "type": "Selection.Changed", "source": "selectionIRIs"},
+          {"property": "selection2", "type": "Selection.Changed", "source": "selectionNewIRI"}
+      ]'
+    default-target='render'
+  >
+  </mp-event-combine>
+
+  <mp-event-target-template-render
+    id='render'
+    template='{{> ::source selection1=selection1 selection2=selection2}}'
+  >
+  </mp-event-target-template-render> <br /> <br />
+
+  <div style='height: 1600px'>
+    <mp-workspace-layout vertical-collapsed-size=50>
+      <mp-workspace-column undocked=true>
+        <mp-workspace-item
+          id='1'
+          heading=" Step 1 - Look for IRIs to be replaced"
+          default-collapsed="true"
+        >
+          <div
+            class='grid-demo'
+            style='flex: 1;height: 1000px'
+          >
+            <semantic-search>
+              <semantic-search-query-keyword
+                domain='<http://www.w3.org/2000/01/rdf-schema#Resource>'
+                query='
+            PREFIX lookup: <http://www.metaphacts.com/ontologies/platform/repository/lookup#>
+            SELECT ?subject ?label ?description ?dataset ?labelLookup ?graph
+            WHERE {
+              BIND(?__token__ as ?labelLookup)
+              GRAPH ?graph { ?subject ?p ?o}
+              SERVICE Repository:lookup {
+                ?subject lookup:token ?__token__ .
+                ?subject lookup:description ?description .
+                ?subject lookup:label ?label .
+                ?subject lookup:dataset ?dataset .
+                ?subject lookup:datasetLabel ?datasetLabel .
+                ?subject lookup:score ?score .
+                ?subject lookup:limit 1000 .
+              }
+            }'
+              >
+              </semantic-search-query-keyword>
+
+              <div data-flex-layout="row stretch-stretch">
+                <semantic-search-result-holder>
+                  <div data-flex-self="md-full">
+                    <semantic-search-result>
+                      <mp-selection-group id="selectionIRIs">
+                        <semantic-table
+                          id='grid-result'
+                          query='SELECT DISTINCT ?subject ?label ?description ?dataset ?score ?labelLookup ?graph
+                           WHERE {
+                           } 
+                           GROUP BY ?subject ?label ?description ?dataset ?score ?labelLookup ?graph
+                           ORDER BY DESC(?score)'
+                          column-configuration='[
+                             {"variableName": "subject", "displayName": "Resource", "cellTemplate": "{{> ::template-kp iri=subject.value label=label}}"},
+                             {"variableName": "subject", "displayName": "IRI", "cellTemplate": "<div>{{subject.value}}</div>"},
+                             {"variableName": "description", "displayName": "Description"},
+                             {"variableName": "graph", "displayName": "Source", "cellTemplate": "<div>{{graph.value}}</div>"}
+                            ]'
+                          options='{"showTableHeading": true, "showFilter":false, "enableGrouping": true,
+                                     "selection": "subject"}'
+                          number-of-displayed-rows="5"
+                          no-result-template='<div style="text-align: center;">No results. Please refine your keyword.</div>'
+                        >
+                        </semantic-table>
+                      </mp-selection-group>
+
+                      <mp-event-target-template-render
+                        id="chooseNewIRI"
+                        template="{{> info }}"
+                      >
+                        <template id="info">
+                          Selected {{#if selection}}{{selection.length}}{{else}}0{{/if}} items
+                        </template>
+                      </mp-event-target-template-render>
+
+                      <mp-event-proxy
+                        on-event-source="selectionIRIs"
+                        on-event-type="Selection.Changed"
+                        proxy-event-type="Component.TemplateUpdate"
+                        proxy-targets='["chooseNewIRI"]'
+                      >
+                      </mp-event-proxy>
+
+                    </semantic-search-result>
+                  </div>
+                </semantic-search-result-holder>
+                <mp-knowledge-panel-frame id='knowledge-panel-1'></mp-knowledge-panel-frame>
+              </div>
+            </semantic-search>
+          </div>
+        </mp-workspace-item>
+
+        <mp-workspace-item
+          id='2'
+          heading="Step 2 - Select the new IRI for the current selection"
+          default-collapsed="true"
+        >
+          <div
+            class='grid-demo'
+            style='flex: 1;height: 1000px'
+          >
+            <semantic-search>
+              <semantic-search-query-keyword
+                domain='<http://www.w3.org/2000/01/rdf-schema#Resource>'
+                query='
+            PREFIX lookup: <http://www.metaphacts.com/ontologies/platform/repository/lookup#>
+            SELECT DISTINCT ?subject ?label ?description ?dataset ?datasetLabel ?labelLookup ?graph
+            WHERE {
+              BIND(?__token__ as ?labelLookup)
+              GRAPH ?graph { ?subject ?p ?o}
+              SERVICE Repository:lookup {
+                ?subject lookup:token ?__token__ .
+                ?subject lookup:description ?description .
+                ?subject lookup:label ?label .
+                ?subject lookup:dataset ?dataset .
+                ?subject lookup:datasetLabel ?datasetLabel .
+                ?subject lookup:score ?score .
+                ?subject lookup:limit 1000 .
+              }
+            }'
+              >
+              </semantic-search-query-keyword>
+
+              <div data-flex-layout="row stretch-stretch">
+                <semantic-search-result-holder>
+                  <div data-flex-self="md-full">
+                    <semantic-search-result>
+                      <mp-selection-group id="selectionNewIRI">
+                        <semantic-table
+                          id='grid-result'
+                          query='SELECT DISTINCT ?subject ?label ?description ?dataset  ?score ?labelLookup ?graph
+                           WHERE {
+                           } 
+                           GROUP BY ?subject ?label ?description ?dataset  ?score ?labelLookup ?graph
+                           ORDER BY DESC(?score)'
+                          column-configuration='[
+                             {"variableName": "subject", "displayName": "Resource"},
+                             {"variableName": "subject", "displayName": "IRI", "cellTemplate": "<div>{{subject.value}}</div>"},
+                             {"variableName": "description", "displayName": "Description"},
+                             {"variableName": "graph", "displayName": "Source", "cellTemplate": "<div>{{graph.value}}</div>"}
+                             ]'
+                          options='{"showTableHeading": true, "showFilter":false, "enableGrouping": true,
+                                     "selection": "subject"}'
+                          number-of-displayed-rows="5"
+                          no-result-template='<div style="text-align: center;">No results. Please refine your keyword.</div>'
+                        >
+                        </semantic-table>
+                      </mp-selection-group>
+
+                      <mp-event-target-template-render
+                        id="chooseNewIRI2"
+                        template="{{> info-1 }}"
+                      >
+                        <template id="info-1">
+                          Selected {{#if selection}}{{selection.length}}{{else}}0{{/if}} items
+                        </template>
+                      </mp-event-target-template-render>
+
+                      <mp-event-proxy
+                        on-event-source="selectionNewIRI"
+                        on-event-type="Selection.Changed"
+                        proxy-event-type="Component.TemplateUpdate"
+                        proxy-targets='["chooseNewIRI2"]'
+                      >
+                      </mp-event-proxy>
+
+                    </semantic-search-result>
+                  </div>
+                </semantic-search-result-holder>
+              </div>
+            </semantic-search>
+
+          </div>
+        </mp-workspace-item>
+      </mp-workspace-column>
+    </mp-workspace-layout>
+  </div>
+</template-fragment>
+
+
+
+<template-fragment id='tpl-full-user'>
+
+  <mp-event-combine
+    listen-events='[
+          {"property": "selection1", "type": "Selection.Changed", "source": "selectionIRIs-user"},
+          {"property": "input", "type": "Form.ResourceCreated", "source": "selectionNewIRI-user"}
+      ]'
+    default-target='render2'
+  >
+  </mp-event-combine>
+
+  <mp-event-target-template-render
+    id='render2'
+    template='{{> ::source selection1=selection1 input=input}}'
+  >
+  </mp-event-target-template-render> <br /> <br />
+
+  <div style='height: 1600px'>
+    <div>
+        <mp-overlay-dialog title="IRI User input" type="modal" bs-size="large">
+          <mp-overlay-dialog-trigger>
+              <button class="btn btn-danger" title="Enter new IRI" style='float:right'>
+                Enter new IRI
+              </button>
+          </mp-overlay-dialog-trigger>
+          <mp-overlay-dialog-content>
+          
+          <mp-event-proxy on-event-type="Form.ResourceCreated" proxy-event-type="Dialog.HideAll"></mp-event-proxy>
+          <bs-alert variant="info">Enter the new IRI, which will replace the one/s currently selected</bs-alert>
+            <semantic-form
+              id='selectionNewIRI-user'
+              post-action="event"
+              new-subject-template='http://example.com/records/{{UUID}}'
+              persistence='{
+              "type": "sparql",
+              "insertGraph": "http://www.example.com/temporalIRINamedGraph",
+              "deleteGraph": "http://www.example.com/temporalIRINamedGraph"
+            }'
+              fields='[ {
+              "iri" : "http://www.metaphacts.com/fieldDefinition/iri-replacement",
+              "minOccurs" : 1,
+              "xsdDatatype" : "http://www.w3.org/2001/XMLSchema#anyURI",
+              "domain" : [ ],
+              "range" : [ ],
+              "defaultValues" : [ ],
+              "maxOccurs" : 1,
+              "id" : "iri-replacement",
+              "label" : "iri-replacement",
+              "insertPattern" : "INSERT { $subject rdfs:label $value} WHERE {}",
+              "deletePattern" : "DELETE { $subject rdfs:label $value} WHERE {}",
+              "order" : 0
+              } ]'
+            >
+              <semantic-form-text-input for="iri-replacement"></semantic-form-text-input>
+              <button
+                name="submit"
+                classname="btn btn-primary"
+              >Create</button>
+              <button
+                name="reset"
+                classname="btn btn-secondary"
+              >Reset</button>
+            </semantic-form>
+          </mp-overlay-dialog-content>
+        </mp-overlay-dialog>
+    </div> <br/> <br/>
+
+    <mp-workspace-layout vertical-collapsed-size=50>
+      <mp-workspace-column undocked=true>
+        <mp-workspace-item
+          id='1'
+          heading=" Step 1 - Look for IRIs to be replaced and then enter the new one"
+          default-collapsed="true"
+        >
+          <div
+            class='grid-demo'
+            style='flex: 1;height: 1000px'
+          >
+            <semantic-search>
+              <semantic-search-query-keyword
+                domain='<http://www.w3.org/2000/01/rdf-schema#Resource>'
+                query='
+            PREFIX lookup: <http://www.metaphacts.com/ontologies/platform/repository/lookup#>
+            SELECT ?subject ?label ?description ?dataset ?labelLookup ?graph
+            WHERE {
+              BIND(?__token__ as ?labelLookup)
+              GRAPH ?graph { ?subject ?p ?o}
+              SERVICE Repository:lookup {
+                ?subject lookup:token ?__token__ .
+                ?subject lookup:description ?description .
+                ?subject lookup:label ?label .
+                ?subject lookup:dataset ?dataset .
+                ?subject lookup:datasetLabel ?datasetLabel .
+                ?subject lookup:score ?score .
+                ?subject lookup:limit 1000 .
+              }
+            }'
+              >
+              </semantic-search-query-keyword>
+
+              <div data-flex-layout="row stretch-stretch">
+                <semantic-search-result-holder>
+                  <div data-flex-self="md-full">
+                    <semantic-search-result>
+                      <mp-selection-group id="selectionIRIs-user">
+                        <semantic-table
+                          id='grid-result'
+                          query='SELECT DISTINCT ?subject ?label ?description ?dataset ?score ?labelLookup ?graph
+                           WHERE {
+                           } 
+                           GROUP BY ?subject ?label ?description ?dataset ?score ?labelLookup ?graph
+                           ORDER BY DESC(?score)'
+                          column-configuration='[
+                             {"variableName": "subject", "displayName": "Resource", "cellTemplate": "{{> ::template-kp iri=subject.value label=label}}"},
+                             {"variableName": "subject", "displayName": "IRI", "cellTemplate": "<div>{{subject.value}}</div>"},
+                             {"variableName": "description", "displayName": "Description"},
+                             {"variableName": "graph", "displayName": "Source", "cellTemplate": "<div>{{graph.value}}</div>"}
+                            ]'
+                          options='{"showTableHeading": true, "showFilter":false, "enableGrouping": true,
+                                     "selection": "subject"}'
+                          number-of-displayed-rows="5"
+                          no-result-template='<div style="text-align: center;">No results. Please refine your keyword.</div>'
+                        >
+                        </semantic-table>
+                      </mp-selection-group>
+
+                      <mp-event-target-template-render
+                        id="chooseNewIRI-user"
+                        template="{{> info2 }}"
+                      >
+                        <template id="info2">
+                          Selected {{#if selection}}{{selection.length}}{{else}}0{{/if}} items
+                        </template>
+                      </mp-event-target-template-render>
+
+                      <mp-event-proxy
+                        on-event-source="selectionIRIs-user"
+                        on-event-type="Selection.Changed"
+                        proxy-event-type="Component.TemplateUpdate"
+                        proxy-targets='["chooseNewIRI-user"]'
+                      >
+                      </mp-event-proxy>
+
+                    </semantic-search-result>
+                  </div>
+                </semantic-search-result-holder>
+                <mp-knowledge-panel-frame id='knowledge-panel-1'></mp-knowledge-panel-frame>
+              </div>
+            </semantic-search>
+          </div>
+        </mp-workspace-item>
+      </mp-workspace-column>
+    </mp-workspace-layout>
+  </div>
+
+</template-fragment>
+
+
+<template-fragment id='tpl-partial-user'>
+  <mp-event-combine
+    listen-events='[
+          {"property": "selection1", "type": "Selection.Changed", "source": "selectionIRIs-user-partial"},
+          {"property": "input-partial", "type": "Form.ResourceCreated", "source": "selectionPartial-user"}
+      ]'
+    default-target='render3'
+  >
+  </mp-event-combine>
+
+  <mp-event-target-template-render
+    id='render3'
+    template='{{> ::source selection1=selection1 input-partial=input-partial}}'
+  >
+  </mp-event-target-template-render> <br /> <br />
+
+  <div style='height: 1600px'>
+      <div>
+        <mp-overlay-dialog title="Strings User input" type="modal" bs-size="large">
+          <mp-overlay-dialog-trigger>
+            <button class="btn btn-danger" title="Enter new strings" style='float:right'>
+                Enter new strings
+              </button>
+          </mp-overlay-dialog-trigger>
+          <mp-overlay-dialog-content>
+          
+          <mp-event-proxy on-event-type="Form.ResourceCreated" proxy-event-type="Dialog.HideAll"></mp-event-proxy>
+          <bs-alert variant="info">Enter the new strings, which will be replace into the IRI/s currently selected</bs-alert>
+
+            <semantic-form
+              id='selectionPartial-user'
+              post-action="event"
+              new-subject-template='http://example.com/records/{{UUID}}'
+              persistence='{
+              "type": "sparql",
+              "insertGraph": "http://www.example.com/temporalIRINamedGraph",
+              "deleteGraph": "http://www.example.com/temporalIRINamedGraph"
+            }'
+              fields='[ {
+              "iri" : "http://www.metaphacts.com/fieldDefinition/string_old",
+              "minOccurs" : 1,
+              "xsdDatatype" : "http://www.w3.org/2001/XMLSchema#string",
+              "domain" : [ ],
+              "range" : [ ],
+              "defaultValues" : [ ],
+              "maxOccurs" : 1,
+              "id" : "string_old",
+              "label" : "string_old",
+              "insertPattern" : "INSERT { $subject :string_old $value} WHERE {}",
+              "deletePattern" : "DELETE { $subject :string_old $value} WHERE {}",
+              "order" : 0
+              },
+              {
+              "iri" : "http://www.metaphacts.com/fieldDefinition/string_new",
+              "minOccurs" : 1,
+              "xsdDatatype" : "http://www.w3.org/2001/XMLSchema#string",
+              "domain" : [ ],
+              "range" : [ ],
+              "defaultValues" : [ ],
+              "maxOccurs" : 1,
+              "id" : "string_new",
+              "label" : "string_new",
+              "insertPattern" : "INSERT { $subject :string_new $value} WHERE {}",
+              "deletePattern" : "DELETE { $subject :string_new $value} WHERE {}",
+              "order" : 0
+              } ]'
+            >
+              <semantic-form-text-input for="string_old"></semantic-form-text-input>
+              <semantic-form-text-input for="string_new"></semantic-form-text-input>
+              <button
+                name="submit"
+                classname="btn btn-primary"
+              >Create</button>
+              <button
+                name="reset"
+                classname="btn btn-secondary"
+              >Reset</button>
+            </semantic-form>
+                      </mp-overlay-dialog-content>
+        </mp-overlay-dialog>
+    </div> <br/> <br/>
+
+    <mp-workspace-layout vertical-collapsed-size=50>
+      <mp-workspace-column undocked=true>
+        <mp-workspace-item
+          id='1'
+          heading=" Step 1 - Look for IRIs to be edited"
+          default-collapsed="true"
+        >
+          <div
+            class='grid-demo'
+            style='flex: 1;height: 1000px'
+          >
+            <semantic-search>
+              <semantic-search-query-keyword
+                domain='<http://www.w3.org/2000/01/rdf-schema#Resource>'
+                query='
+            PREFIX lookup: <http://www.metaphacts.com/ontologies/platform/repository/lookup#>
+            SELECT ?subject ?label ?description ?dataset ?labelLookup ?graph
+            WHERE {
+              BIND(?__token__ as ?labelLookup)
+              GRAPH ?graph { ?subject ?p ?o}
+              SERVICE Repository:lookup {
+                ?subject lookup:token ?__token__ .
+                ?subject lookup:description ?description .
+                ?subject lookup:label ?label .
+                ?subject lookup:dataset ?dataset .
+                ?subject lookup:datasetLabel ?datasetLabel .
+                ?subject lookup:score ?score .
+                ?subject lookup:limit 1000 .
+              }
+            }'
+              >
+              </semantic-search-query-keyword>
+
+              <div data-flex-layout="row stretch-stretch">
+                <semantic-search-result-holder>
+                  <div data-flex-self="md-full">
+                    <semantic-search-result>
+                      <mp-selection-group id="selectionIRIs-user-partial">
+                        <semantic-table
+                          id='grid-result'
+                          query='SELECT DISTINCT ?subject ?label ?description ?dataset ?score ?labelLookup ?graph
+                           WHERE {
+                           } 
+                           GROUP BY ?subject ?label ?description ?dataset ?score ?labelLookup ?graph
+                           ORDER BY DESC(?score)'
+                          column-configuration='[
+                             {"variableName": "subject", "displayName": "Resource", "cellTemplate": "{{> ::template-kp iri=subject.value label=label}}"},
+                             {"variableName": "subject", "displayName": "IRI", "cellTemplate": "<div>{{subject.value}}</div>"},
+                             {"variableName": "description", "displayName": "Description"},
+                             {"variableName": "graph", "displayName": "Source", "cellTemplate": "<div>{{graph.value}}</div>"}
+                            ]'
+                          options='{"showTableHeading": true, "showFilter":false, "enableGrouping": true,
+                                     "selection": "subject"}'
+                          number-of-displayed-rows="5"
+                          no-result-template='<div style="text-align: center;">No results. Please refine your keyword.</div>'
+                        >
+                        </semantic-table>
+                      </mp-selection-group>
+
+                      <mp-event-target-template-render
+                        id="chooseNewPartial"
+                        template="{{> info3 }}"
+                      >
+                        <template id="info3">
+                          Selected {{#if selection}}{{selection.length}}{{else}}0{{/if}} items
+                        </template>
+                      </mp-event-target-template-render>
+
+                      <mp-event-proxy
+                        on-event-source="selectionIRIs-user-partial"
+                        on-event-type="Selection.Changed"
+                        proxy-event-type="Component.TemplateUpdate"
+                        proxy-targets='["chooseNewPartial"]'
+                      >
+                      </mp-event-proxy>
+
+                    </semantic-search-result>
+                  </div>
+                </semantic-search-result-holder>
+                <mp-knowledge-panel-frame id='knowledge-panel-1'></mp-knowledge-panel-frame>
+              </div>
+            </semantic-search>
+          </div>
+        </mp-workspace-item>
+      </mp-workspace-column>
+    </mp-workspace-layout>
+  </div>
+</template-fragment>
+
+
+<template-fragment id='main'>
+
+  <bs-nav>
+    <bs-nav-dropdown
+      id='replacementOpts'
+      title="Select a IRI replacement option"
+    >
+      <bs-menu-item>
+        <mp-event-trigger
+          id='dom-refresh'
+          type='Component.TemplateUpdate'
+          targets='["table"]'
+          data='{"type": "full-existing"}'
+        >
+          <div>Full Replacement with existing IRIs</div>
+        </mp-event-trigger>
+      </bs-menu-item>
+      <bs-menu-item>
+        <mp-event-trigger
+          id='dom-refresh'
+          type='Component.TemplateUpdate'
+          targets='["table"]'
+          data='{"type": "full-user"}'
+        >
+          <div>Full Replacement with IRIs from user input</div>
+        </mp-event-trigger>
+      </bs-menu-item>
+      <bs-menu-item>
+        <mp-event-trigger
+          id='dom-refresh'
+          type='Component.TemplateUpdate'
+          targets='["table"]'
+          data='{"type": "partial-user"}'
+        >
+          <div>Partial Replacement with user inputs</div>
+        </mp-event-trigger>
+      </bs-menu-item>
+    </bs-nav-dropdown>
+  </bs-nav>
+
+  <br /><br /><br /><br />
+
+  <mp-event-target-template-render
+    id='table'
+    template='{{> template}}'
+  >
+    <template id='template'>
+      {{#switch type}}
+      {{#case "full-existing" break=true}}
+      {{> ::tpl-full-existing}}
+      {{/case}}
+      {{#case "full-user" break=true}}
+      <semantic-update
+        id='remove'
+        query='
+          DELETE {
+            GRAPH <http://www.example.com/temporalIRINamedGraph> {
+              ?s ?p ?o .
+            }
+          }  
+          WHERE {
+            ?s ?p ?o .
+          }'
+        variable-params='["s", "p", "o"]'
+      >
+      </semantic-update>
+      {{> ::tpl-full-user}}
+      {{/case}}
+      {{#case "partial-user" break=true}}
+      {{> ::tpl-partial-user}}
+      {{/case}}
+      {{/switch}}
+    </template>
+  </mp-event-target-template-render>
+
+</template-fragment>
+
+
+<div class='page'>
+  <div class='page__body'>
+    <h1> Global IRI Replacement </h1>
+    <bs-alert
+      variant="warning"
+      class="alert-icon"
+    >Be careful, you will update the databases.</bs-alert>
+
+    {{> ::main}}
+  </div>
+</div>
