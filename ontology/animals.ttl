@@ -8,6 +8,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <http://ontologies.metaphacts.com/animals> a owl:Ontology;
+  dcterms:description "Toy example"@en;
   dcterms:title "animals";
   vaem:namespace <http://ontologies.metaphacts.com/animals/>;
   rdfs:label "animals";
