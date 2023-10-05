@@ -1,0 +1,98 @@
+@prefix : <http://ontologies.metaphacts.com/animals/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix vaem: <http://www.linkedmodel.org/1.2/schema/vaem#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://ontologies.metaphacts.com/animals> a owl:Ontology;
+  dcterms:title "animals";
+  vaem:namespace <http://ontologies.metaphacts.com/animals/>;
+  rdfs:label "animals" .
+
+<https://dbpedia.org/ontology/Animal> a owl:Class;
+  rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
+  rdfs:label "Animal"@en .
+
+<https://dbpedia.org/ontology/AnimalShape> a sh:NodeShape;
+  sh:property [
+      sh:datatype xsd:date;
+      sh:minCount 1;
+      sh:path <https://dbpedia.org/ontology/deathDate>
+    ], [
+      sh:class <https://dbpedia.org/ontology/Animal>;
+      sh:path <https://dbpedia.org/ontology/dam>
+    ], [
+      sh:class <https://dbpedia.org/ontology/Place>;
+      sh:maxCount 1;
+      sh:minCount 1;
+      sh:path <https://dbpedia.org/ontology/birthPlace>
+    ], [
+      sh:class <https://dbpedia.org/ontology/Place>;
+      sh:maxCount 1;
+      sh:minCount 1;
+      sh:path <https://dbpedia.org/ontology/deathPlace>
+    ], [
+      sh:class <https://dbpedia.org/ontology/Person>;
+      sh:path <https://dbpedia.org/ontology/breeder>
+    ], [
+      sh:datatype xsd:date;
+      sh:minCount 1;
+      sh:path <https://dbpedia.org/ontology/birthDate>
+    ];
+  sh:targetClass <https://dbpedia.org/ontology/Animal> .
+
+<https://dbpedia.org/ontology/Cat> a owl:Class;
+  rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
+  rdfs:label "Cat"@en;
+  rdfs:subClassOf <https://dbpedia.org/ontology/Mammal> .
+
+<https://dbpedia.org/ontology/Dog> a owl:Class;
+  rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
+  rdfs:label "Dog"@en;
+  rdfs:subClassOf <https://dbpedia.org/ontology/Mammal> .
+
+<https://dbpedia.org/ontology/Horse> a owl:Class;
+  rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
+  rdfs:label "Horse"@en;
+  rdfs:subClassOf <https://dbpedia.org/ontology/Mammal> .
+
+<https://dbpedia.org/ontology/Mammal> a owl:Class;
+  rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
+  rdfs:label "Mammal"@en;
+  rdfs:subClassOf <https://dbpedia.org/ontology/Animal> .
+
+<https://dbpedia.org/ontology/Person> a owl:Class;
+  rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
+  rdfs:label "Person"@en;
+  rdfs:subClassOf <https://dbpedia.org/ontology/Animal> .
+
+<https://dbpedia.org/ontology/Place> a owl:Class;
+  rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
+  rdfs:label "Place"@en .
+
+<https://dbpedia.org/ontology/birthDate> a owl:DatatypeProperty;
+  rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
+  rdfs:label "birthDate"@en .
+
+<https://dbpedia.org/ontology/birthPlace> a owl:ObjectProperty;
+  rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
+  rdfs:label "birthPlace"@en .
+
+<https://dbpedia.org/ontology/breeder> a owl:ObjectProperty;
+  rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
+  rdfs:label "breeder"@en .
+
+<https://dbpedia.org/ontology/dam> a owl:ObjectProperty;
+  rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
+  rdfs:label "dam"@en .
+
+<https://dbpedia.org/ontology/deathDate> a owl:DatatypeProperty;
+  rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
+  rdfs:label "deathDate"@en .
+
+<https://dbpedia.org/ontology/deathPlace> a owl:ObjectProperty;
+  rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
+  rdfs:label "deathPlace"@en .
