@@ -20,29 +20,29 @@
 
 <https://dbpedia.org/ontology/AnimalShape> a sh:NodeShape;
   sh:property [
-      sh:datatype xsd:date;
-      sh:minCount 1;
-      sh:path <https://dbpedia.org/ontology/deathDate>
-    ], [
       sh:class <https://dbpedia.org/ontology/Animal>;
       sh:path <https://dbpedia.org/ontology/dam>
+    ], [
+      sh:class <https://dbpedia.org/ontology/Person>;
+      sh:path <https://dbpedia.org/ontology/breeder>
     ], [
       sh:class <https://dbpedia.org/ontology/Place>;
       sh:maxCount 1;
       sh:minCount 1;
       sh:path <https://dbpedia.org/ontology/birthPlace>
     ], [
-      sh:class <https://dbpedia.org/ontology/Place>;
-      sh:maxCount 1;
+      sh:datatype xsd:date;
       sh:minCount 1;
-      sh:path <https://dbpedia.org/ontology/deathPlace>
-    ], [
-      sh:class <https://dbpedia.org/ontology/Person>;
-      sh:path <https://dbpedia.org/ontology/breeder>
+      sh:path <https://dbpedia.org/ontology/deathDate>
     ], [
       sh:datatype xsd:date;
       sh:minCount 1;
       sh:path <https://dbpedia.org/ontology/birthDate>
+    ], [
+      sh:class <https://dbpedia.org/ontology/Place>;
+      sh:maxCount 1;
+      sh:minCount 1;
+      sh:path <https://dbpedia.org/ontology/deathPlace>
     ];
   sh:targetClass <https://dbpedia.org/ontology/Animal> .
 
@@ -74,6 +74,13 @@
 <https://dbpedia.org/ontology/Place> a owl:Class;
   rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
   rdfs:label "Place"@en .
+
+<https://dbpedia.org/ontology/PlaceShape> a sh:NodeShape;
+  sh:property [
+      sh:datatype xsd:string;
+      sh:path rdfs:label
+    ];
+  sh:targetClass <https://dbpedia.org/ontology/Place> .
 
 <https://dbpedia.org/ontology/birthDate> a owl:DatatypeProperty;
   rdfs:isDefinedBy <http://ontologies.metaphacts.com/animals>;
