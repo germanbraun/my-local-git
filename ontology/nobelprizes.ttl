@@ -1,0 +1,123 @@
+@prefix : <http://data.nobelprize.org/terms/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix vaem: <http://www.linkedmodel.org/1.2/schema/vaem#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[] sh:in (:Chemistry :Economic_Sciences :Litterature :Peace :Physics :Physiology_or_Medicin) .
+
+<http://data.nobelprize.org/terms/> a owl:Ontology;
+  dcterms:description "Linked Nobelprizes"@en;
+  dcterms:title "Linked Nobelprizes"@en;
+  rdfs:seeAlso <http://www.nobelprize.org/>;
+  owl:versionInfo "version 0.1" .
+
+:Category a owl:Class;
+  rdfs:comment "The Nobel Prize is given in six different categories.";
+  rdfs:label "Nobel Prize category";
+  rdfs:subClassOf skos:Concept .
+
+:Laureate a owl:Class;
+  rdfs:comment "A laureate is a person or organization who recieves one or several Nobel Prizes.";
+  rdfs:label "Laureate";
+  rdfs:subClassOf <http://xmlns.com/foaf/0.1/Agent> .
+
+:LaureateAward a owl:Class;
+  rdfs:comment "The Nobel Prize is often divided to several laureates. LaureateAward captures the details of the award given to each laureate, such as share of the Nobel Prize, motivation etc.";
+  rdfs:label "Laureate Award";
+  rdfs:subClassOf <http://dbpedia.org/ontology/Award> .
+
+:LaureateAwardShape a sh:NodeShape;
+  sh:property _:9b6446500f464951934860f43bfb783f180, [ a sh:PropertyShape;
+      sh:class :Laureate;
+      sh:path :laureate
+    ], [ a sh:PropertyShape;
+      sh:class <http://dbpedia.org/ontology/University>;
+      sh:path :university
+    ];
+  sh:targetClass :LaureateAward .
+
+:LaureateShape a sh:NodeShape;
+  sh:property [ a sh:PropertyShape;
+      sh:class :LaureateAward;
+      sh:path :laureateAward
+    ], [ a sh:PropertyShape;
+      sh:class :NobelPrize;
+      sh:path :nobelPrize
+    ];
+  sh:targetClass :Laureate .
+
+:NobelPrize a owl:Class;
+  rdfs:comment "The Nobel Prize is a set of annual international awards bestowed in a number of categories by Scandinavian committees in recognition of cultural and scientific advances. The will of the Swedish chemist Alfred Nobel, the inventor of dynamite, established the prizes in 1895. The prizes in Physics, Chemistry, Physiology or Medicine, Literature, and Peace were first awarded in 1901. The Peace Prize is awarded in Oslo, Norway, while the other prizes are awarded in Stockholm, Sweden.";
+  rdfs:label "Nobel Prize";
+  rdfs:subClassOf <http://dbpedia.org/ontology/Award> .
+
+:NobelPrizeShape a sh:NodeShape;
+  sh:property _:9b6446500f464951934860f43bfb783f180, [ a sh:PropertyShape;
+      sh:class :Category;
+      sh:path :category
+    ];
+  sh:targetClass :NobelPrize .
+
+_:9b6446500f464951934860f43bfb783f180 a sh:PropertyShape;
+  sh:class rdf:PlainLiteral;
+  sh:path :motivation .
+
+:category a owl:ObjectProperty;
+  rdfs:comment "The category this Nobel Prize belongs to.";
+  rdfs:label "category" .
+
+:laureate a owl:ObjectProperty;
+  rdfs:comment "Which laureates that recieve an award.";
+  rdfs:label "laureate" .
+
+:laureateAward a owl:ObjectProperty;
+  rdfs:comment "Connects each laureate with the part of the Nobel Prize, that is the LaureateAward, he or she recieved.";
+  rdfs:label "laureateAward";
+  rdfs:subPropertyOf <http://dbpedia.org/ontology/Award> .
+
+:motivation a owl:DatatypeProperty;
+  rdfs:comment "The motivation for why the laureate or was given the Nobel Prize or the motivation for the whole prize.";
+  rdfs:label "motivation" .
+
+:nobelPrize a owl:ObjectProperty;
+  rdfs:comment "Points to the Nobel Prize recieved by a Laureate.";
+  rdfs:label "nobelPrize";
+  rdfs:subPropertyOf <http://dbpedia.org/ontology/Award> .
+
+:share a owl:DatatypeProperty;
+  rdfs:comment "The share of a Nobel Prize given to a Laureate, may be 1, 2, 3 or 4 corresponding to the whole prize, half the prize, third of the priza and a quarter of the prize.";
+  rdfs:label "share" .
+
+:sortOrder a owl:DatatypeProperty;
+  rdfs:comment "The sort order of laureates.";
+  rdfs:label "sort order" .
+
+:university a owl:ObjectProperty;
+  rdfs:comment "Points to the universities the Laureate was affiliated with during the period he did his contribution that laid the ground for the award.";
+  rdfs:label "university" .
+
+:year a owl:DatatypeProperty;
+  rdfs:comment "The year a given Nobel Prize was given.";
+  rdfs:label "year" .
+
+<http://dbpedia.org/ontology/AwardShape> a sh:NodeShape;
+  sh:property [ a sh:PropertyShape;
+      sh:datatype xsd:Integer;
+      sh:path :year
+    ];
+  sh:targetClass <http://dbpedia.org/ontology/Award> .
+
+<http://dbpedia.org/ontology/LaureateAwardShape> a sh:NodeShape;
+  sh:property [ a sh:PropertyShape;
+      sh:datatype xsd:Integer;
+      sh:path :sortOrder
+    ], [ a sh:PropertyShape;
+      sh:datatype xsd:Integer;
+      sh:path :share
+    ];
+  sh:targetClass <http://dbpedia.org/ontology/LaureateAward> .
